@@ -1,39 +1,18 @@
-import { Routes, Route, Link } from 'react-router-dom'
-import Login from './pages/Login'
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from './assets/vite.svg'
+import heroImg from './assets/hero.png'
 import Dashboard from './pages/Dashboard'
-import Users from './pages/Users'
-import ProtectedRoute from './components/ProtectRoute'
+import './App.css'
 
-export default function App() {
+function App() {
+  const [count, setCount] = useState(0)
+
   return (
-    <div>
-      <nav>
-        <Link to="/">Login</Link> | {" "}
-        <Link to="/dashboard">Dashboard</Link> | {" "}
-        <Link to="/users">Users</Link>
-      </nav>
-
-      <Routes>
-        <Route path="/" element={<Login />} />
-
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/users"
-          element={
-            <ProtectedRoute>
-              <Users />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </div>
+    <>
+    <Dashboard></Dashboard>
+    </>
   )
 }
+
+export default App
