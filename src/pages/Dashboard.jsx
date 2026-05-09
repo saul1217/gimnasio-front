@@ -12,11 +12,12 @@ export const Dashboard = ({}) => {
         </h1>
         </div>
         <div>
-            <button 
+            <Link 
+            to="/Login"
             className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-md transition-colors duration-300 uppercase text-sm"
             >
             Iniciar Sesión
-            </button>
+            </Link>
         </div>
       </header>
 

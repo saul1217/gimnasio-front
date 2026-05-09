@@ -1,4 +1,6 @@
 import React from "react";
+import { Link } from 'react-router-dom';
+import Dashboard from "./Dashboard";
 
 export const Login = ({}) => {
 
@@ -44,11 +46,12 @@ export const Login = ({}) => {
         </form>
 
         <div className="mt-8 text-center border-t border-zinc-800 pt-6">
-          <button 
+          <Link
+          to="/"
             className="text-gray-500 hover:text-red-500 text-sm transition-colors flex items-center justify-center gap-2 w-full uppercase font-bold tracking-wide"
           >
             <span>←</span> Volver al inicio
-          </button>
+          </Link>
         </div>
       </div>
     </div>)
