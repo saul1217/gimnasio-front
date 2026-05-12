@@ -1,8 +1,34 @@
 import React from "react";
-import { Link } from 'react-router-dom';
+import { useState} from "react";
+import { Link, useNavigate } from 'react-router-dom';
 import Dashboard from "./Dashboard";
+import { loginRequest } from '../api/authApi';
 
 export const Login = ({}) => {
+const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mensaje, setMensaje] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMensaje("");
+
+    try {
+      const data = await loginRequest(email, password);
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      navigate("/Usuario");
+    } catch (error) {
+      setMensaje(
+        error.response?.data?.error ||
+          "Error al iniciar sesión. Verifica tus credenciales.",
+      );
+    }
+  };
 
     return(
         <div className="min-h-screen bg-black flex items-center justify-center p-4 ">
@@ -14,13 +40,16 @@ export const Login = ({}) => {
           <p className="text-gray-400 text-sm">Ingresa a tu cuenta para ver tu rutina</p>
         </div>
         
-        <form className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-gray-300 text-sm font-bold mb-2 uppercase">
               Correo electrónico
             </label>
             <input 
               type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               placeholder="tu@email.com" 
               className="w-full px-4 py-3 bg-black border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-colors placeholder-zinc-600"
             />
@@ -32,6 +61,9 @@ export const Login = ({}) => {
             </label>
             <input 
               type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               placeholder="••••••••" 
               className="w-full px-4 py-3 bg-black border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-colors placeholder-zinc-600"
             />
@@ -39,7 +71,7 @@ export const Login = ({}) => {
           
           <button 
             type="submit" 
-            className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-lg transition-colors duration-300 uppercase mt-3"
+            className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-lg transition-colors duration-300 uppercase mt-3 cursor-pointer"
           >
             Entrar al sistema
           </button>
