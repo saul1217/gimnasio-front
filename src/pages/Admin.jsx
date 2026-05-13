@@ -1,0 +1,332 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getUsersRequest, registerRequest, register_admin } from '../api/authApi';
+
+export const Admin = () => {
+  const navigate = useNavigate();
+  
+  const [usuarios, setUsuarios] = useState([
+
+  ]);
+  const [busqueda, setBusqueda] = useState("");
+  
+  const [showModal, setShowModal] = useState(false);
+  const [nuevoUsuario, setNuevoUsuario] = useState({
+    nombre: "",
+    email: "",
+    password: "",
+    rol: "cliente"
+  });
+
+  useEffect(() => {
+    const cargarUsuarios = async () => {
+      try {
+        const data = await getUsersRequest();
+        setUsuarios(data);
+      } catch (error) {
+        console.error("Error al cargar la lista de usuarios desde Express:", error);
+      }
+    };
+    cargarUsuarios();
+  }, []);
+
+  const usuariosFiltrados = usuarios.filter(u => 
+    u.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    u.email.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
+
+
+  const [loading, setLoading] = useState(false);
+
+  const handleCreateUser = async (e) => {
+  e.preventDefault();
+  if (loading) return;
+  if (!nuevoUsuario.nombre || !nuevoUsuario.email || !nuevoUsuario.password) {
+    alert("Por favor llena todos los campos");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    let data;
+    if (nuevoUsuario.rol === 'admin') {
+      data = await register_admin(
+        nuevoUsuario.nombre, 
+        nuevoUsuario.email, 
+        nuevoUsuario.password
+      );
+    } else {
+      data = await registerRequest(
+        nuevoUsuario.nombre, 
+        nuevoUsuario.email, 
+        nuevoUsuario.password
+      );
+    }
+
+    const listaActualizada = await getUsersRequest();
+    setUsuarios(listaActualizada);
+
+    setShowModal(false);
+    setNuevoUsuario({ nombre: "", email: "", password: "", rol: "cliente" });
+    
+  } catch (error) {
+    console.error("Error al registrar:", error);
+    alert(error.response?.data?.error || "Hubo un error al intentar crear el registro en el servidor.");
+  }finally{
+    setLoading(false);
+  }
+};
+
+ 
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-gray-200 font-sans flex overflow-x-hidden selection:bg-red-600 selection:text-white">
+      <aside className="w-64 bg-[#0f0f11] border-r border-zinc-800/80 flex flex-col justify-between shrink-0">
+        <div>
+          <div className="p-6 border-b border-zinc-800/80">
+            <h1 className="text-2xl font-black tracking-tighter uppercase text-red-600">
+              ARREBATADOS
+            </h1>
+            <div className="gap-2 mt-1 text-center">
+              <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Admin Panel</span>
+          
+            </div>
+          </div>
+
+          <nav className="p-4 space-y-1">
+            <button 
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+            >
+            Clientes
+            </button>
+            <button 
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer "
+            >
+            Rutinas
+            </button>
+          
+          </nav>
+        </div>
+
+        <div className="p-4 border-t border-zinc-800/80">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-red-500 transition-colors text-xs font-bold uppercase tracking-wider cursor-pointer"
+          >
+            <span>←</span> Cerrar Sesión
+          </button>
+        </div>
+      </aside>
+
+      <main className="flex-1 p-8 md:p-12 overflow-y-auto">
+        
+        <header className="flex justify-between items-center mb-10 pb-6 border-b border-zinc-800/60">
+          <div>
+            <h2 className="text-4xl font-black text-white tracking-tight uppercase">Panel de Control</h2>
+            <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider font-bold">Monitoreo y gestión de atletas y administradores</p>
+          </div>
+          <button 
+            onClick={() => setShowModal(true)}
+            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-lg uppercase tracking-wider transition-all shadow-lg shadow-red-600/20 shrink-0 cursor-pointer"
+          >
+            + Nuevo Registro
+          </button>
+        </header>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="bg-[#121214] border border-zinc-800/80 p-6 rounded-2xl">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total Cuentas</p>
+            <p className="text-4xl font-black text-white mt-2">{usuarios.length}</p>
+          </div>
+
+          <div className="bg-[#121214] border-2 border-red-600/60 p-6 rounded-2xl relative shadow-[0_0_20px_rgba(220,38,38,0.05)]">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-red-500">Clientes Activos</p>
+            <p className="text-4xl font-black text-red-600 mt-2">
+              {usuarios.filter(u => (u.estado === 1 || u.estado === "1") && u.rol !== 'admin').length}
+            </p>
+          </div>
+
+          <div className="bg-[#121214] border border-zinc-800/80 p-6 rounded-2xl">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Staff (Admins)</p>
+            <p className="text-4xl font-black text-white mt-2">{usuarios.filter(u => u.rol === 'admin').length}</p>
+          </div>
+        </div>
+
+        <div className="mb-6 bg-[#121214] border border-zinc-800/80 p-3 rounded-xl flex items-center">
+          <input 
+            type="text"
+            placeholder="Buscar cuenta por nombre o correo..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full bg-transparent text-sm text-white focus:outline-none placeholder-zinc-600 pr-3"
+          />
+        </div>
+
+        <div className="bg-[#121214] border border-zinc-800/80 rounded-2xl overflow-hidden shadow-xl">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-zinc-800/80 text-[10px] font-black uppercase tracking-widest text-gray-500 bg-[#0f0f11]">
+                <th className="p-5">ID</th>
+                <th className="p-5">Usuario / Correo</th>
+                <th className="p-5">Rol</th>
+                <th className="p-5 text-center">Estado</th>
+                <th className="p-5 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-800/40 text-sm">
+              {usuariosFiltrados.map((u) => (
+                <tr key={u.id_usuario} className="hover:bg-zinc-900/40 transition-colors">
+                  <td className="p-5 font-bold text-zinc-600">#{u.id_usuario}</td>
+                  <td className="p-5">
+                    <p className="font-black text-white uppercase tracking-wide">{u.nombre}</p>
+                    <p className="text-xs text-gray-500">{u.email}</p>
+                  </td>
+                  <td className="p-5">
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
+                      u.rol === 'admin' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'text-gray-400'
+                    }`}>
+                      {u.rol === 'admin' ? '🛡️ Admin' : 'Atleta'}
+                    </span>
+                  </td>
+                  <td className="p-5 text-center">
+                    <span className={`px-2 py-1 rounded font-black text-[9px] uppercase tracking-wider ${
+                      (u.estado === 1 || u.estado === "1") 
+                        ? 'bg-red-600/10 border border-red-600/30 text-red-500' 
+                        : 'bg-zinc-800 text-gray-600 border border-zinc-700'
+                    }`}>
+                      {(u.estado === 1 || u.estado === "1") ? 'ACTIVO' : 'INACTIVO'}
+                    </span>
+                  </td>
+                  <td className="p-5 text-right space-x-2">
+                    {u.rol !== 'admin' && (
+                      <button className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer">
+                        Rutina
+                      </button>
+                    )}
+                    <button 
+                      className="px-3 py-1.5 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-600/20 hover:border-red-600 rounded font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+                    >
+                      Baja
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </main>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#121214] border border-zinc-800 p-8 rounded-2xl w-full max-w-md relative shadow-2xl">
+            
+            <button 
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-white text-xl font-bold cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <h3 className="text-xl font-black text-white uppercase tracking-wider mb-6 border-b border-zinc-800 pb-3">
+              Alta en el Sistema
+            </h3>
+
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                  Tipo de Cuenta
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setNuevoUsuario({...nuevoUsuario, rol: 'cliente'})}
+                    className={`py-2 rounded-lg font-black text-xs uppercase tracking-wider border transition-all cursor-pointer ${
+                      nuevoUsuario.rol === 'cliente' 
+                        ? 'bg-red-600 border-red-600 text-white' 
+                        : 'bg-zinc-900 border-zinc-800 text-gray-500 hover:text-white'
+                    }`}
+                  >
+                    Atleta (Cliente)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNuevoUsuario({...nuevoUsuario, rol: 'admin'})}
+                    className={`py-2 rounded-lg font-black text-xs uppercase tracking-wider border transition-all cursor-pointer ${
+                      nuevoUsuario.rol === 'admin' 
+                        ? 'bg-amber-600 border-amber-600 text-white' 
+                        : 'bg-zinc-900 border-zinc-800 text-gray-500 hover:text-white'
+                    }`}
+                  >
+                    Staff (Admin)
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
+                  Nombre Completo
+                </label>
+                <input 
+                  type="text"
+                  required
+                  placeholder="Ej. Alfredo"
+                  value={nuevoUsuario.nombre}
+                  onChange={(e) => setNuevoUsuario({...nuevoUsuario, nombre: e.target.value})}
+                  className="w-full bg-black border border-zinc-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
+                  Correo Electrónico
+                </label>
+                <input 
+                  type="email"
+                  required
+                  placeholder="correoo@arrebatados.com"
+                  value={nuevoUsuario.email}
+                  onChange={(e) => setNuevoUsuario({...nuevoUsuario, email: e.target.value})}
+                  className="w-full bg-black border border-zinc-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
+                  Contraseña Temporal
+                </label>
+                <input 
+                  type="password"
+                  placeholder="••••••••"
+                  value={nuevoUsuario.password}
+                  onChange={(e) => setNuevoUsuario({...nuevoUsuario, password: e.target.value})}
+                  className="w-full bg-black border border-zinc-800 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+                <button 
+                    type="submit"
+                    disabled={loading}
+                    className={`w-full mt-6 py-3 bg-red-600 text-white font-black text-xs rounded-lg uppercase tracking-widest transition-all ${
+                        loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700 cursor-pointer'
+                    }`}
+                    >
+                    {loading ? 'Procesando...' : 'Registrar Cuenta'}
+                </button>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+export default Admin;

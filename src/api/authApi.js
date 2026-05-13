@@ -29,3 +29,9 @@ export const getUsersRequest = async () => {
   const response = await api.get("/users");
   return response.data;
 };
+
+export const register_admin = async (nombre, email, password) => {
+  const response = await api.post("/register_admin", { nombre, email, password });
+  return response.data;
+};
+

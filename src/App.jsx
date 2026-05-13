@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Usuario from './pages/Usuario'
 import Login_admin from './pages/Login_admin'
+import Admin from './pages/Admin'
 import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
@@ -16,6 +17,8 @@ function App() {
         <Route path="/login" element={<Login/>} />
         <Route path="/Usuario" element={<Usuario/>} />
         <Route path="/Login_admin" element={<Login_admin/>} />
+                <Route path="/Admin" element={<Admin/>} />
+
 
       </Routes>
     </BrowserRouter>
