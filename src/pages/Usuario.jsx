@@ -1,4 +1,30 @@
-export const Usuario = ({}) => {
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+export const Usuario = () => {
+  const navigate = useNavigate();
+  const [userName, setUserName] = useState("Arrebatado");
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const userObj = JSON.parse(userStr);
+        if (userObj.nombre) {
+          setUserName(userObj.nombre);
+        }
+      } catch (error) {
+        console.error("Error al leer el usuario del localStorage", error);
+      }
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
 
    return (
     <div className="min-h-screen bg-black text-gray-200 font-sans selection:bg-red-600 selection:text-white">
@@ -13,6 +39,7 @@ export const Usuario = ({}) => {
               Hola, saul
             </span>
             <button 
+            onClick={handleLogout}
               className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-red-500 transition-colors cursor-pointer"
             >
               <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
