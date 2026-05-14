@@ -39,3 +39,8 @@ export const getRutinasRequest = async () => {
     const response = await api.get("/rutinas");
     return response.data;
 };
+
+export const getDetalleRutinaRequest = async (id_rutina) => {
+    const response = await api.get(`/rutina/${id_rutina}`);
+    return response.data;
+};
