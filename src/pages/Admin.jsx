@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUsersRequest, registerRequest, register_admin } from '../api/authApi';
-
+import { getUsersRequest, getRutinasRequest, registerRequest, register_admin } from '../api/authApi';
 export const Admin = () => {
   const navigate = useNavigate();
   
@@ -9,6 +8,8 @@ export const Admin = () => {
 
   ]);
   const [busqueda, setBusqueda] = useState("");
+  const [pestañaActual, setPestañaActual] = useState("clientes");
+  const [rutinas, setRutinas] = useState([]);
   
   const [showModal, setShowModal] = useState(false);
   const [nuevoUsuario, setNuevoUsuario] = useState({
@@ -19,15 +20,19 @@ export const Admin = () => {
   });
 
   useEffect(() => {
-    const cargarUsuarios = async () => {
+   const cargarDatos = async () => {
       try {
-        const data = await getUsersRequest();
-        setUsuarios(data);
+        const dataUsuarios = await getUsersRequest();
+        setUsuarios(dataUsuarios);
+
+        const dataRutinas = await getRutinasRequest();
+        setRutinas(dataRutinas);
       } catch (error) {
-        console.error("Error al cargar la lista de usuarios desde Express:", error);
+        console.error("Error al cargar los datos desde Express:", error);
       }
     };
-    cargarUsuarios();
+    
+    cargarDatos();
   }, []);
 
   const usuariosFiltrados = usuarios.filter(u => 
@@ -101,11 +106,13 @@ export const Admin = () => {
 
           <nav className="p-4 space-y-1">
             <button 
+            onClick={() => setPestañaActual("clientes")}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
             >
             Clientes
             </button>
             <button 
+            onClick={() => setPestañaActual("rutinas")}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer "
             >
             Rutinas
@@ -125,7 +132,8 @@ export const Admin = () => {
       </aside>
 
       <main className="flex-1 p-8 md:p-12 overflow-y-auto">
-        
+        {pestañaActual === "clientes" && (
+          <>
         <header className="flex justify-between items-center mb-10 pb-6 border-b border-zinc-800/60">
           <div>
             <h2 className="text-4xl font-black text-white tracking-tight uppercase">Panel de Control</h2>
@@ -220,8 +228,70 @@ export const Admin = () => {
             </tbody>
           </table>
         </div>
-      </main>
+        </>
+      )}
+   
 
+      {pestañaActual === "rutinas" && (
+          <>
+            <header className="flex justify-between items-center mb-10 pb-6 border-b border-zinc-800/60">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight uppercase">Biblioteca de Rutinas</h2>
+                <p className="text-xs text-gray-400 mt-1 font-bold">Crea, edita y asigna planes de entrenamiento para los atletas</p>
+              </div>
+              <button 
+                onClick={() => setShowModalRutina(true)}
+                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-lg uppercase tracking-wider transition-all shadow-lg shadow-red-600/20 shrink-0 cursor-pointer"
+              >
+                + Nueva Rutina
+              </button>
+            </header>
+
+            {rutinas.length === 0 ? (
+              <div className="p-12 text-center text-zinc-600 font-black uppercase tracking-wider border border-dashed border-zinc-800 rounded-2xl">
+                Vacio.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {rutinas.map((rutina) => (
+                  <div 
+                    key={rutina.id_rutina}
+                    className="bg-[#121214] border border-zinc-800/80 rounded-2xl p-6 flex flex-col justify-between hover:border-zinc-700 transition-all relative"
+                  >
+                    <div>
+                      <span className="inline-block px-3 py-1 bg-black border border-zinc-800/80 text-[9px] font-black tracking-widest text-gray-300 uppercase rounded mb-4">
+                        {rutina.objetivo || "General"}
+                      </span>
+                      <h3 className="text-xl font-black text-white uppercase tracking-wide mb-3">
+                        {rutina.nombre_rutina}
+                      </h3>
+                    
+                    </div>
+
+                    <div className="mt-6 pt-4 border-t border-zinc-800/60 flex items-center justify-between">
+                      <button className="text-xs font-black text-red-600 hover:text-red-500 uppercase tracking-wider transition-colors cursor-pointer">
+                        Asignar
+                      </button>
+                      
+                      <div className="flex items-center gap-2">
+                        <button className="px-3 py-1.5 bg-transparent border border-zinc-800 hover:bg-zinc-800 text-white rounded font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer">
+                          Editar
+                        </button>
+                        <button className="p-1.5 text-gray-600 hover:text-red-500 transition-colors cursor-pointer">
+                          <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+   </main>
       {showModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-[#121214] border border-zinc-800 p-8 rounded-2xl w-full max-w-md relative shadow-2xl">

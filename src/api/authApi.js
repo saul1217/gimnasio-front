@@ -35,3 +35,7 @@ export const register_admin = async (nombre, email, password) => {
   return response.data;
 };
 
+export const getRutinasRequest = async () => {
+    const response = await api.get("/rutinas");
+    return response.data;
+};
